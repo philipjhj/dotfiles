@@ -17,6 +17,7 @@ Plugin 'gmarik/Vundle.vim'
 
 Plugin 'bling/vim-airline'
 
+
 set previewheight=25
 Plugin 'tpope/vim-fugitive'
 Plugin 'airblade/vim-gitgutter'
@@ -24,10 +25,15 @@ Plugin 'tpope/vim-rhubarb'
 Plugin 'scrooloose/nerdtree'
 
 " Python
-Plugin 'python-mode/python-mode'
+"Plugin 'reconquest/vim-pythonx'
+"Plugin 'python-mode/python-mode'
 "Plugin 'davidhalter/jedi-vim'
 "Plugin 'wilywampa/vim-ipython'
 Plugin 'tell-k/vim-autopep8'
+Plugin 'vim-python/python-syntax'
+Plugin 'wmvanvliet/jupyter-vim'
+"Plugin 'broesler/jupyter-vim'
+
 
 
 " Snippets
@@ -72,26 +78,36 @@ set term=xterm-256color
 
 " Tab line with buffers
 let g:airline#extensions#tabline#enabled=1
+let g:airline#extensions#tabline#show_tabs=0
 " Just show the filename(no path) in the tab
 let g:airline#extensions#tabline#fnamemod=':t'
-
+let g:airline#extensions#tabline#show_buffers=1
+let g:airline#extensions#tabline#show_close_button=0
+let g:airline#extensions#tabline#show_splits=0
+let g:airline#extensions#tabline#switch_buffers_and_tabs=1
 
 " NERDTree options
 map <F2> :NERDTreeToggle<CR>
-
+"autocmd BufEnter * silent! lcd %:p:h
 
 "  # Python Options
 
 "  # Python-Mode options
 let g:pymode_run=1
-"let g:pymode_doc=1
-"let g:pymode_doc_bind='B'
+let g:pymode_doc=0
+let g:pymode_doc_bind='K'
 let g:pymode_indent=1
 let g:pymode_folding=1
 let g:pymode_run_bind='<leader>r'
-"let g:pymode_rope_show_doc_bind='<C-d>'
 let g:pymode_python='python3'
+let g:pymode_quickfix_minheight = 3
+let g:pymode_quickfix_maxheight = 20
 let g:pymode_lint_ignore=""
+" Rope support
+let g:pymode_rope = 1
+let g:pymode_rope_complete_on_dot = 1
+let g:pymode_rope_show_doc_bind='<C-d>'
+let g:pymode_rope_autoimport = 0
 
 " Latex Box Options
 "let g:LatexBox_viewer='okular'
@@ -264,11 +280,26 @@ function! TwiddleCase(str)
 endfunction
 vnoremap~y:call setreg('', TwiddleCase(@"), getregtype(''))<CR>gv""Pgv
 
+" Setup for recognizing Alt as a modifier when using vim in the terminal
+" from here:
+" https://stackoverflow.com/questions/6778961/alt-key-shortcuts-not-working-on-gnome-terminal-with-vim
+let c='a'
+while c <= 'z'
+  exec "set <A-".c.">=\e".c
+  exec "imap \e".c." <A-".c.">"
+  let c = nr2char(1+char2nr(c))
+endw
+
+set timeout ttimeoutlen=50
 
 " Move lines up or down
-nnoremap <s-j> :m.+1<CR>==
-nnoremap <s-k> :m.-2<CR>==
-" inoremap <s-j> <Esc>:m.+1<CR>==gi
-" inoremap <s-k> <Esc>:m.-2<CR>==gi
-vnoremap <s-k> :m'<-2<CR>gv=gv
-vnoremap <s-j> :m'>+1<CR>gv=gv
+nnoremap <A-j> :m .+1<CR>==
+nnoremap <A-k> :m .-2<CR>==
+inoremap <A-j> <Esc>:m .+1<CR>==gi
+inoremap <A-k> <Esc>:m .-2<CR>==gi
+vnoremap <A-j> :m '>+1<CR>gv=gv
+vnoremap <A-k> :m '<-2<CR>gv=gv
+
+
+" External files
+source ~/.vim/surround-function.vim "https://gist.github.com/romgrk/35186f3b5a71a7d89b2229b6f73e4f32 

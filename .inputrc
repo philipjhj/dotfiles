@@ -1,0 +1,9 @@
+## arrow up
+"\e[A":history-search-backward
+## arrow down
+"\e[B":history-search-forward
+
+## previous command (ctrl+p)
+"\C-p":history-search-backward
+## next command (ctrl+n)
+"\C-n":history-search-forward
