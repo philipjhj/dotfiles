@@ -221,6 +221,8 @@ stty -ixon
 source activate py37
 alias o="xdg-open" # o stands for open
 
+# Colors
+eval `dircolors ~/.dir_colors/dircolors.256dark`
 
 # Change Gnome-Terminal Profile
 function chp(){

@@ -5,3 +5,7 @@
 *~
 !.gitignore
 !.inputrc
+!.bashrc
+!.fonts
+!.config_git.sh
+
