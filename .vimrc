@@ -1,3 +1,7 @@
+" Following things would be nice to add:
+" - Move up and down between sections (# %%) for python files
+" 
+"
 " Use Vim settings, rather than Vi settings(much better!).
 " This must be first, because it changes other options as a side effect.
 set nocompatible
@@ -124,7 +128,7 @@ let g:vimtex_view_general_viewer='okular'
 let g:vimtex_view_general_options='--unique @pdf\#src:@line@tex'
 let g:vimtex_view_general_options_latexmk='--unique'
 
-let g:vimtex_quickfix_mode=2
+let g:vimtex_quickfix_mode=0
 
 map <F3> :VimtexCompileSS<CR>
 
