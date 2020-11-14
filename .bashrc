@@ -16,14 +16,11 @@ export PATH="/media/data/programs/MATLAB/matlab2017b/bin/:$PATH"
 #export PATH="~/bin:$PATH"
 for d in ~/scripts/*/bin; do PATH="$PATH:$d"; done
 PATH="$PATH:~/scripts/utilities"
+PATH="$PATH:~/scripts/bash/bin/i3"
 
 # Malmo Project (Microsft research)
 export MALMO_XSD_PATH=/media/data/Dropbox/Studie/PhD/code/malmoChallenge/MalmoProject/Schemas
 export PYTHONPATH=$PYTHONPATH:/media/data/Dropbox/Studie/PhD/code/malmoChallenge/MalmoProject/malmo-challenge/ai_challenge/pig_chase
-
-# Miniconda
-export PATH=/media/data/programs/miniconda3/bin:$PATH
-
 
 # ALIAS DEFINITIONS
 # You may want to put all your additions into a separate file like
@@ -45,10 +42,13 @@ alias f='nautilus .'
 
 #alias vim='vim --servername vim'
 
+
+
 alias gbar='ssh phav@login.gbar.dtu.dk'
 alias gbarx='ssh -X phav@login.gbar.dtu.dk'
 
 alias mnt_gbar_work1='sshfs phav@transfer.gbar.dtu.dk:/work1/phav/ gbar_work1'
+alias mnt_gbar_root='sshfs phav@transfer.gbar.dtu.dk: gbar_root'
 alias mnt_dabai='sshfs -o reconnect -o IdentityFile=~/.ssh/id_rsa phav@thinlinc.compute.dtu.dk:/dtu-compute/dabai dabai_data'
 
 if [ -x /usr/bin/dircolors ]; then
@@ -90,6 +90,39 @@ gpucluster () {
     ssh phav@$1.compute.dtu.dk
 }
 
+wifi () {
+
+        if [ -n $1 ]; then 
+                if [ "$1" == "list" ]; then 
+                   nmcli d wifi list --rescan yes
+                 elif [ "$1" == "connect" ]; then
+                   # Dynamic selection menu from 
+                   # (https://stackoverflow.com/questions/27389089/dynamic-option-selection-in-bash)
+                   choices=$(wifi list | awk -F '\t| {2,}' '{print $2}' | sort -u)
+                   OLDIFS=IFS
+                   IFS=$'\n'
+
+                   #echo "$choices"
+                   choices=($(echo "$choices"))
+                   #echo ${choices[@]}
+
+                   PS3="Choose wifi to connect to:"
+                   select selected in "${choices[@]}"; do
+                           for item in "${choices[@]}"; do
+                               if [[ $item == $selected ]]; then
+                                 break 2
+                               fi
+                           done
+                   done
+                   echo "Trying to connect to $selected"                    
+                   nmcli -a d wifi connect $selected 
+
+                   IFS=OLDIFS
+                else
+                    echo $1" is an unknown command"
+                 fi 
+          fi
+}
 
 print_msg () {
     #echo $(date '+%H:%M:%S %d-%m-%Y')':'$1': '$2
@@ -110,6 +143,14 @@ print_msg_aligned () {
         # https://stackoverflow.com/questions/16583320/format-multiline-command-output-in-bash-using-printf
 
         printf '%s:%-10s %s\n' "$info_string" "$1:" "$(echo $2 | fold -w$msg_width | sed "$padded_msg")"
+}
+
+reset_sound () {
+        systemctl --user stop pulseaudio.socket 
+        systemctl --user stop pulseaudio.service
+        sudo alsa force-reload
+        systemctl --user start pulseaudio.socket
+        systemctl --user start pulseaudio.service
 }
 
 # encrypting setup from https://unix.stackexchange.com/questions/28603/simplest-way-to-password-protect-a-directory-and-its-contents-without-having-to
@@ -218,7 +259,6 @@ stty -ixon
 #setxkbmap -option caps:ctrl_modifier
 
 
-source activate py37
 alias o="xdg-open" # o stands for open
 
 # Colors
@@ -231,3 +271,25 @@ function chp(){
 
 alias dark='chp 2'
 alias light='chp 3'
+
+
+
+
+# >>> conda initialize >>>
+# !! Contents within this block are managed by 'conda init' !!
+__conda_setup="$('/media/programs/miniconda3/bin/conda' 'shell.bash' 'hook' 2> /dev/null)"
+if [ $? -eq 0 ]; then
+    eval "$__conda_setup"
+else
+    if [ -f "/media/programs/miniconda3/etc/profile.d/conda.sh" ]; then
+        . "/media/programs/miniconda3/etc/profile.d/conda.sh"
+    else
+        export PATH="/media/programs/miniconda3/bin:$PATH"
+    fi
+fi
+unset __conda_setup
+# <<< conda initialize <<<
+conda activate py37
+
+
+[ -f ~/.fzf.bash ] && source ~/.fzf.bash

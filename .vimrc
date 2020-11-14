@@ -1,6 +1,9 @@
 " Following things would be nice to add:
 " - Move up and down between sections (# %%) for python files
-" 
+" - change package management to 'Dein', see https://github.com/Shougo/dein.vim
+" - Plugins:
+"       - https://github.com/rhysd/vim-grammarous
+"       - https://github.com/dense-analysis/ale
 "
 " Use Vim settings, rather than Vi settings(much better!).
 " This must be first, because it changes other options as a side effect.
@@ -28,6 +31,9 @@ Plugin 'airblade/vim-gitgutter'
 Plugin 'tpope/vim-rhubarb'
 Plugin 'scrooloose/nerdtree'
 
+" Archived Plugins
+" Plugin 'severin-lemaignan/vim-minimap'
+
 " Python
 "Plugin 'reconquest/vim-pythonx'
 "Plugin 'python-mode/python-mode'
@@ -37,6 +43,8 @@ Plugin 'tell-k/vim-autopep8'
 Plugin 'vim-python/python-syntax'
 Plugin 'wmvanvliet/jupyter-vim'
 "Plugin 'broesler/jupyter-vim'
+Plugin 'heavenshell/vim-pydocstring'
+Plugin 'tell-k/vim-autoflake'
 
 
 
@@ -48,6 +56,13 @@ Plugin 'tomtom/tlib_vim'
 Bundle 'Rykka/riv.vim'
 Bundle 'Rykka/InstantRst'
 
+" Markdown
+Bundle 'gabrielelana/vim-markdown'
+
+" Focus
+Plugin 'junegunn/limelight.vim'
+Plugin 'junegunn/goyo.vim'
+
 " LATEX
 Plugin 'lervag/vimtex'
 
@@ -57,16 +72,39 @@ Plugin 'Townk/vim-autoclose' " auto closes brackets
 Plugin 'beloglazov/vim-online-thesaurus' " Work lookup for synonyms and definitions
 Plugin 'vim-scripts/Align'
 Plugin 'jlanzarotta/bufexplorer'
-Plugin 'kien/ctrlp.vim'
+Plugin 'ctrlpvim/ctrlp.vim'
+Plugin 'dpelle/vim-LanguageTool' " Grammar checker 
+
+
+
+Plugin 'ycm-core/YouCompleteMe'
 
 
 " All of your Plugins must be added before the following line
 call vundle#end()            " required
 
+" Specify a directory for plugins
+" - For Neovim: stdpath('data') . '/plugged'
+" - Avoid using standard Vim directory names like 'plugin'
+call plug#begin('~/.vim/plugged')
+
+" Make sure you use single quotes
+Plug 'iamcco/markdown-preview.nvim', { 'do': { -> mkdp#util#install() } }
+Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
+Plug 'junegunn/fzf.vim'
+
+" Initialize plugin system
+call plug#end()
+
+let g:pydocstring_doq_path = '/media/programs/miniconda3/envs/py37/bin/doq'
+
 " Native settings
 set expandtab
 set tabstop=4
 
+let g:autoflake_remove_all_unused_imports=1
+let g:autoflake_remove_unused_variables=1
+let g:autoflake_disable_show_diff=1
 
 " Ultisnips
 let g:UltiSnipsExpandTrigger="<tab>"
@@ -129,8 +167,16 @@ let g:vimtex_view_general_options='--unique @pdf\#src:@line@tex'
 let g:vimtex_view_general_options_latexmk='--unique'
 
 let g:vimtex_quickfix_mode=0
+let g:tex_flavor = 'latex'
 
 map <F3> :VimtexCompileSS<CR>
+
+" enable youcompleteme for vimtex
+if !exists('g:ycm_semantic_triggers')
+let g:ycm_semantic_triggers = {}
+endif
+let g:ycm_semantic_triggers.tex = g:vimtex#re#youcompleteme
+
 
 " Errorformat: Begin multiline with pattern './<filename>:<line#>: <message>',
 " end multiline with remaining message, and ignore all other patterns
@@ -141,10 +187,10 @@ map <F5> :cprev<CR>
 map <F6> :cnext<CR>
 map <F4> :clist<CR>
 
-let g:vimtex_quickfix_ignored_warnings=[
-\'Underfull',
-\'Overfull',
-\'specifier changed to',]
+" let g:vimtex_quickfix_ignored_warnings=[
+" \'Underfull',
+" \'Overfull',
+" \'specifier changed to',]
 
 "Automatic Tex Plugin
 syntax on
@@ -201,7 +247,8 @@ set incsearch		" do incremental searching
 
 set relativenumber
 set number
-set wildmenu
+"set wildmenu
+"set wildmode=full
 
 " CTRL-U in insert mode deletes a lot.  Use CTRL-G u to first break undo,
 " so that you can undo CTRL-U after inserting a line break.
@@ -307,3 +354,27 @@ vnoremap <A-k> :m '<-2<CR>gv=gv
 
 " External files
 source ~/.vim/surround-function.vim "https://gist.github.com/romgrk/35186f3b5a71a7d89b2229b6f73e4f32 
+
+
+" Spell checking
+set spell 
+set spelllang=en
+set spellfile=~/.vim/spell/en.utf-8.add
+
+autocmd! User GoyoEnter Limelight
+autocmd! User GoyoLeave Limelight!
+
+function ToggleWrap()
+ if (&wrap == 1)
+   set nowrap
+ else
+   set wrap
+ endif
+endfunction
+
+map <F9> :call ToggleWrap()<CR>
+map! <F9> ^[:call ToggleWrap()<CR>
+
+let g:languagetool_jar='$HOME/langtool/LanguageTool-5.0/languagetool-commandline.jar'
+
+
