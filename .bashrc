@@ -252,7 +252,11 @@ if ! shopt -oq posix; then
 fi
 
 
+# Git completion (https://stackoverflow.com/questions/12399002/how-to-configure-git-bash-command-line-completion)
+source /usr/share/bash-completion/completions/git
+
 # Vim configuration
+# Stop ctrl+s from freezing terminal
 stty -ixon
 
 # Set CAPSLOCK to CTRL

@@ -7,24 +7,24 @@
 "
 " Use Vim settings, rather than Vi settings(much better!).
 " This must be first, because it changes other options as a side effect.
+" {{{ init
 set nocompatible
-
 let mapleader=","
 let maplocalleader=","
 
 filetype off                  " required
 
+"}}}1
+
+"{{{1 Plugins 
+"{{{2 Vundle 
 " set the runtime path to include Vundle and initialize
 set rtp+=~/.vim/bundle/Vundle.vim
 call vundle#begin()
 
 " let Vundle manage Vundle, required
 Plugin 'gmarik/Vundle.vim'
-
-
 Plugin 'bling/vim-airline'
-
-
 set previewheight=25
 Plugin 'tpope/vim-fugitive'
 Plugin 'airblade/vim-gitgutter'
@@ -33,7 +33,6 @@ Plugin 'scrooloose/nerdtree'
 
 " Archived Plugins
 " Plugin 'severin-lemaignan/vim-minimap'
-
 " Python
 "Plugin 'reconquest/vim-pythonx'
 "Plugin 'python-mode/python-mode'
@@ -45,8 +44,7 @@ Plugin 'wmvanvliet/jupyter-vim'
 "Plugin 'broesler/jupyter-vim'
 Plugin 'heavenshell/vim-pydocstring'
 Plugin 'tell-k/vim-autoflake'
-
-
+Plugin 'AndrewRadev/linediff.vim'
 
 " Snippets
 Plugin 'MarcWeber/vim-addon-mw-utils'
@@ -74,15 +72,12 @@ Plugin 'vim-scripts/Align'
 Plugin 'jlanzarotta/bufexplorer'
 Plugin 'ctrlpvim/ctrlp.vim'
 Plugin 'dpelle/vim-LanguageTool' " Grammar checker 
-
-
-
 Plugin 'ycm-core/YouCompleteMe'
-
 
 " All of your Plugins must be added before the following line
 call vundle#end()            " required
 
+"{{{2 Plug
 " Specify a directory for plugins
 " - For Neovim: stdpath('data') . '/plugged'
 " - Avoid using standard Vim directory names like 'plugin'
@@ -95,12 +90,41 @@ Plug 'junegunn/fzf.vim'
 
 " Initialize plugin system
 call plug#end()
+"}}}2
+"}}}1
 
+" {{{1 Folds
+" Suggestion to use folding for managing a large .vimrc
+" found here: https://vi.stackexchange.com/a/24984/19751
+" use 1/2 after the 3 curly brackets for level 1/2 folds
+
+set foldmethod=marker
+set foldcolumn=1
+
+augroup match_folds
+    autocmd!
+    " VimEnter handles at start up, WinNew for each window created AFTER startup.
+    " Regex matches { { { with an empty group in the middle so that vim does
+    " not create a fold in this code, then either a 1 or 2 then a space. Then
+    " zs is the start of the match which is the rest of the line then ze is
+    " the end of the match. Refer to :help pattern-overview
+    autocmd VimEnter,WinNew * let w:_foldlevel1_id = matchadd('_FoldLevel1', '{{\(\){1\ \zs.\+\ze', -1)
+    autocmd VimEnter,WinNew * let w:_foldlevel2_id = matchadd('_FoldLevel2', '{{\(\){2\ \zs.\+\ze', -1)
+augroup END
+
+hi Folded               guifg=#FF9999 guibg=#005050 gui=bold,italic
+hi FoldColumn           guifg=#FF9999 guibg=#005050 gui=bold
+hi _FoldLevel1          guifg=#005050 guibg=#FF9999 gui=bold,italic
+hi _FoldLevel2          guifg=#003030 guibg=#CC8080 gui=bold,italic
+" }}}1
+
+" {{{1 rest (needs to be organized)
 let g:pydocstring_doq_path = '/media/programs/miniconda3/envs/py37/bin/doq'
 
 " Native settings
 set expandtab
 set tabstop=4
+
 
 let g:autoflake_remove_all_unused_imports=1
 let g:autoflake_remove_unused_variables=1
@@ -178,14 +202,6 @@ endif
 let g:ycm_semantic_triggers.tex = g:vimtex#re#youcompleteme
 
 
-" Errorformat: Begin multiline with pattern './<filename>:<line#>: <message>',
-" end multiline with remaining message, and ignore all other patterns
-" Looping throught patterns until a match is found(patterns colon seperated)
-set efm=%A./%f:%l:\%m,%Z%m,%-G%.%
-
-map <F5> :cprev<CR>
-map <F6> :cnext<CR>
-map <F4> :clist<CR>
 
 " let g:vimtex_quickfix_ignored_warnings=[
 " \'Underfull',
@@ -193,26 +209,80 @@ map <F4> :clist<CR>
 " \'specifier changed to',]
 
 "Automatic Tex Plugin
-syntax on
 "let g:tex_flavor = "latex" "ensuring correct highlightning
 "let g: atp_tab_map = 1
 "let g: no_apt = 1
 "let g: atp_Compiler = 'bash'
 
+"}}}1
 
-" Text folding
-"- save automatic
-autocmd BufWinLeave *.* mkview
-autocmd BufWinEnter *.* silent loadview
+"{{{1 Custom functions
 
-" avoid navigating to quickfix buffer with: bnext /: bprev
-" (https: // stackoverflow.com/questions/28613190/exclude-quickfix-buffer-from-bnext-bprevious)
-augroup qf
-    autocmd!
-    autocmd FileType qf set nobuflisted
-augroup END
+" Capitalization of regions
+"
+function! TwiddleCase(str)
+  if a:str==#toupper(a:str)
+    let result=tolower(a: str)
+  elseif a:str==#tolower(a:str)
+    let result=substitute(a:str,'\(\<\w\+\>\)','\u\1','g')
+  else
+    let result=toupper(a:str)
+  endif
+  return result
+endfunction
 
-"<< << < ----------- MY KEY MAPPINGS - ---------->>>>>
+function ToggleWrap()
+ if (&wrap == 1)
+   set nowrap
+ else
+   set wrap
+ endif
+endfunction
+
+" Functions to shuffle between prespecified options
+function Next_item_from_bracket_list(bracket_list, current_item)
+    " Takes a list a:bracket_list like [a,b,c] and identifies the item following
+    " the a:current_item
+        let end_pos=matchend(a:bracket_list, a:current_item)
+        let char_match=strpart(a:bracket_list,end_pos,1)
+
+        if char_match == ','
+            let remind=matchstr(strpart(a:bracket_list,end_pos),', \w*')
+            let new_opt=strpart(remind, 2)
+        elseif char_match == ']'
+            let remind=matchstr(a:bracket_list,'[\w*')
+            let new_opt=strpart(remind, 1)
+        endif
+        
+        return new_opt
+endfunction
+
+function ToggleOpt()
+    let line = getline('.') "line under cursor
+
+    let old_opt_value=strpart(matchstr(line, '=\w*'),1)
+    let opt_list=matchstr(line, '\[.*\]')
+
+    let new_opt = Next_item_from_bracket_list(opt_list, old_opt_value)
+
+    let new_line = substitute(line,old_opt_value, new_opt, '')
+    call setline('.', new_line)
+endfunction
+
+"}}}1
+
+" {{{1 Mappings 
+
+"{{{2 Native Functionality
+
+"Edit and source vimrc easily
+nnoremap <leader>ev :vsplit $MYVIMRC<cr>
+nnoremap <leader>sv :source $MYVIMRC<cr>
+
+
+map <F5> :cprev<CR>
+map <F6> :cnext<CR>
+map <F4> :clist<CR>
 
 "Insert Time Stamp
 nnoremap <F5> "=strftime("%FT%T%z")<CR>P
@@ -232,6 +302,57 @@ nnoremap <CR> o<Esc>
 " Map ESC in insert mode
 inoremap jk <Esc>
 
+" CTRL-U in insert mode deletes a lot.  Use CTRL-G u to first break undo,
+" so that you can undo CTRL-U after inserting a line break.
+inoremap <C-U> <C-G>u<C-U>
+
+" Tabs key bindings
+map <C-l> :tabnext<CR>
+map <C-h> :tabprevious<CR>
+
+" Buffer key bindings
+map <C-k> :bnext<CR>
+map <C-j> :bprevious<CR>
+"nnoremap <A-PageUp> :bnext<CR>
+"nnoremap <A-PageDown> :bprevious<CR>
+
+" Move lines up or down
+nnoremap <A-j> :m .+1<CR>==
+nnoremap <A-k> :m .-2<CR>==
+inoremap <A-j> <Esc>:m .+1<CR>==gi
+inoremap <A-k> <Esc>:m .-2<CR>==gi
+vnoremap <A-j> :m '>+1<CR>gv=gv
+vnoremap <A-k> :m '<-2<CR>gv=gv
+
+"{{{2 MAPS for custom functions
+map <F9> :call ToggleWrap()<CR>
+map! <F9> ^[:call ToggleWrap()<CR>
+
+vnoremap~y:call setreg('', TwiddleCase(@"), getregtype(''))<CR>gv""Pgv
+nnoremap <M-t> :call ToggleOpt()<CR>
+
+"}}}2
+"}}}1
+
+"{{{1 Custom Settings
+
+" Errorformat: Begin multiline with pattern './<filename>:<line#>: <message>',
+" end multiline with remaining message, and ignore all other patterns
+" Looping throught patterns until a match is found(patterns colon seperated)
+set efm=%A./%f:%l:\%m,%Z%m,%-G%.%
+syntax on
+" Text folding
+"- save automatic
+autocmd BufWinLeave *.* mkview
+autocmd BufWinEnter *.* silent loadview
+
+" avoid navigating to quickfix buffer with: bnext /: bprev
+" (https: // stackoverflow.com/questions/28613190/exclude-quickfix-buffer-from-bnext-bprevious)
+augroup qf
+    autocmd!
+    autocmd FileType qf set nobuflisted
+augroup END
+
 " allow backspacing over everything in insert mode
 set backspace=indent,eol,start
 
@@ -250,17 +371,11 @@ set number
 "set wildmenu
 "set wildmode=full
 
-" CTRL-U in insert mode deletes a lot.  Use CTRL-G u to first break undo,
-" so that you can undo CTRL-U after inserting a line break.
-inoremap <C-U> <C-G>u<C-U>
 
 " In many terminal emulators the mouse works just fine, thus enable it.
 if has('mouse')
   set mouse=a
 endif
-
-filetype plugin indent on
-syntax on
 
 " Only do this part when compiled with support for autocommands.
 if has("autocmd")
@@ -291,9 +406,7 @@ if has("autocmd")
   augroup END
 
 else
-
   set autoindent		" always set autoindenting on
-
 endif " has("autocmd")
 
 " Convenient command to see the difference between the current buffer and the
@@ -303,33 +416,6 @@ if !exists(":DiffOrig")
   command DiffOrig vert new | set bt=nofile | r + +edit  # | 0d_ | diffthis
 		  \ | wincmd p | diffthis
 endif
-
-
-
-" Tabs key bindings
-map <C-l> :tabnext<CR>
-map <C-h> :tabprevious<CR>
-
-" Buffer key bindings
-map <C-k> :bnext<CR>
-map <C-j> :bprevious<CR>
-"nnoremap <A-PageUp> :bnext<CR>
-"nnoremap <A-PageDown> :bprevious<CR>
-
-
-" Capitalization of regions
-"
-function! TwiddleCase(str)
-  if a:str==#toupper(a:str)
-    let result=tolower(a: str)
-  elseif a:str==#tolower(a:str)
-    let result=substitute(a:str,'\(\<\w\+\>\)','\u\1','g')
-  else
-    let result=toupper(a:str)
-  endif
-  return result
-endfunction
-vnoremap~y:call setreg('', TwiddleCase(@"), getregtype(''))<CR>gv""Pgv
 
 " Setup for recognizing Alt as a modifier when using vim in the terminal
 " from here:
@@ -343,38 +429,15 @@ endw
 
 set timeout ttimeoutlen=50
 
-" Move lines up or down
-nnoremap <A-j> :m .+1<CR>==
-nnoremap <A-k> :m .-2<CR>==
-inoremap <A-j> <Esc>:m .+1<CR>==gi
-inoremap <A-k> <Esc>:m .-2<CR>==gi
-vnoremap <A-j> :m '>+1<CR>gv=gv
-vnoremap <A-k> :m '<-2<CR>gv=gv
-
-
 " External files
 source ~/.vim/surround-function.vim "https://gist.github.com/romgrk/35186f3b5a71a7d89b2229b6f73e4f32 
 
-
 " Spell checking
-set spell 
+set nospell 
 set spelllang=en
 set spellfile=~/.vim/spell/en.utf-8.add
 
 autocmd! User GoyoEnter Limelight
 autocmd! User GoyoLeave Limelight!
 
-function ToggleWrap()
- if (&wrap == 1)
-   set nowrap
- else
-   set wrap
- endif
-endfunction
-
-map <F9> :call ToggleWrap()<CR>
-map! <F9> ^[:call ToggleWrap()<CR>
-
 let g:languagetool_jar='$HOME/langtool/LanguageTool-5.0/languagetool-commandline.jar'
-
-
