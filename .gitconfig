@@ -27,3 +27,7 @@ tf = ls-tree --full-tree -r --name-only HEAD # tracked files
 	required = true
 [github]
 	user = philipjhj
+[ghi]
+	token = 703904bcd55713b0ecd9ceccbeb2a0bf0b73a55a
+	token = 8cdf4fb501d3d6e436fadbca2382c3920ecf4827
+	token = 155457bae3ec74121b2ce9ec041d7b5904563c33

@@ -9,7 +9,8 @@ case $- in
 esac
 
 # PATH
-export PATH="/usr/local/texlive/2016/bin/x86_64-linux:$PATH"
+#export PATH="/usr/local/texlive/2016/bin/x86_64-linux:$PATH"
+export PATH="/home/philipjhj/texlive/2020/bin/x86_64-linux:$PATH"
 export PATH="/media/data/programs/MATLAB/matlab2017b/bin/:$PATH"
 
 ## Scripts
@@ -297,3 +298,6 @@ conda activate py37
 
 
 [ -f ~/.fzf.bash ] && source ~/.fzf.bash
+
+# Created by `pipx` on 2021-07-15 06:54:25
+export PATH="$PATH:/home/philipjhj/.local/bin"
